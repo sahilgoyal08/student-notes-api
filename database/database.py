@@ -11,8 +11,6 @@ def get_db_connection():
 def setup_database():
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # 1. Create users table (Already exists, Postgres will ignore it)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
