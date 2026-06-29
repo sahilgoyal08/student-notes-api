@@ -22,12 +22,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 # --- NEW: JWT TOKEN GENERATOR ---
 def create_access_token(data: dict):
-    to_encode = data.copy()
+    payload = data.copy()
     
     # Make the token expire in 1 hour for security
-    expire = datetime + timedelta(hours=1)
-    to_encode.update({"exp": expire})
+    expire = datetime.utcnow() + timedelta(hours=1)
+    payload.update({"exp": expire})
     
     # Create the cryptographically signed badge
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token

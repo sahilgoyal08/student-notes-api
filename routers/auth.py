@@ -8,34 +8,6 @@ from psycopg2.extras import RealDictCursor
 from psycopg2.errors import UniqueViolation 
 
 router = APIRouter(tags=["Authentication"])
-# This tells FastAPI where our users get their tokens
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-# This is our bouncer function
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        # Try to decode the badge using our secret key
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        
-        if username is None:
-            raise credentials_exception
-            
-        # If it worked, hand the username to the route!
-        return username
-        
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise credentials_exception
-
-
-
 
 @router.get("/")
 def returning():
@@ -52,7 +24,6 @@ def create_user(user: UserCreate):
     hashed_pwd= get_password_hash(user.password)
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-
     try:
         cursor.execute(
             "INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING id, username",
@@ -89,12 +60,3 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     
     access_token = create_access_token(data={"sub": user["username"]})
     return {"access_token": access_token, "token_type": "bearer"}
-
-@router.get("/protected-data")
-def read_secret_data(current_user: str = Depends(get_current_user)):
-    # If the code makes it inside this function, the token is 100% valid!
-    return {
-        "message": "You made it past the bouncer!", 
-        "user": current_user,
-        "secret": "Batman's real name is Bruce Wayne"
-    }
