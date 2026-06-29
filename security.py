@@ -25,7 +25,7 @@ def create_access_token(data: dict):
     to_encode = data.copy()
     
     # Make the token expire in 1 hour for security
-    expire = datetime.utcnow() + timedelta(hours=1)
+    expire = datetime + timedelta(hours=1)
     to_encode.update({"exp": expire})
     
     # Create the cryptographically signed badge
